@@ -16,41 +16,57 @@ app.get('/', function (req, res) {
 app.get('/subscribe', function (req, res) {
     let token = generateToken();
     let subscribe = {};
+    var noo = false;
     // subscribe = JSON.parse(fs.readFileSync('./names.json', 'utf8'));
 
     openDB();
     subscribe['name'] = req.query.name;
-    subscribe['reclamation_token'] = req.query.reclamationToken;
+    subscribe['reclamationToken'] = req.query.reclamationToken;
     let json = JSON.parse(JSON.stringify(subscribe));
     subscribe['desc'] = req.query.desc;
     subscribe['email'] = req.query.email;
 
-    // let sql =
-    
-    let domain = [
-        subscribe['name'],
-        subscribe['desc'],
-        subscribe['email'],
-        subscribe['reclamation_token']
-    ];
-
-    let placeholders = '(?,?,?,?)';
-    // let placeholders = names.map((name) => '(?)').join(',');
-
-    let sql = 'INSERT INTO domain VALUES ' + placeholders;
-    db.run(sql, domain, function (err) {
-        if (err) {
-            return console.error(err.message);
-        }
-        console.log('Rows inserted')
+    let sql = 'SELECT name name, reclamation_token token FROM domain ' +
+        'WHERE name = ? and reclamation_token  = ?';
+    db.serialize(() => {
+        let domainAvailable = false;
+        db.get(sql, [subscribe['name'],subscribe['reclamationToken']], (err, row) => {
+            if (err) {
+                return console.error(err.message);
+            }
+            // return row
+            //     ? (console.log(row.name))
+            //     : console.log("This domain is available.")
+            if (row) {
+                console.log(row.name)
+            } else {
+                console.log("This domain is available.")
+            }
+        });
+        let domain = [
+            subscribe['name'],
+            subscribe['desc'],
+            subscribe['email'],
+            subscribe['reclamationToken']
+        ];
+        let placeholders = '(?,?,?,?)';
+        sql = 'INSERT INTO domain VALUES ' + placeholders;
+        db.run(sql, domain, function (err) {
+            if (err) {
+                return console.error(err.message);
+            }
+            console.log('Rows inserted')
+        });
+        closeDB();
     });
-    console.log(domain);
+    if (noo) {
+        console.log("noasdnasod")
+    }
     res.send(json);
-    closeDB();
 });
 
 function openDB() {
-    db = new sqlite3.Database('./db/domainDB.db', sqlite3.OPEN_READWRITE, (err) => {
+    db = new sqlite3.Database('./db/domain.db', sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
             console.error(err.message);
         }
