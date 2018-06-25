@@ -36,26 +36,43 @@ app.get('/subscribe', function (req, res) {
             }
         });
 
-            let domain = [
-                subscribe['name'],
-                subscribe['desc'],
-                subscribe['email'],
-                subscribe['reclamationToken']
-            ];
-            let placeholders = '(?,?,?,?)';
-            sql = 'INSERT INTO domain VALUES ' + placeholders;
-            db.run(sql, domain, function (err) {
-                if (err) {
-                    res.status(400);
-                    // return console.error(err.message);
-                    return console.error("Domain not available.")
-                }
-                console.log('Rows inserted')
-            });
+        let domain = [
+            subscribe['name'],
+            subscribe['desc'],
+            subscribe['email'],
+            // subscribe['reclamationToken']
+        ];
+        // let placeholders = '(?,?,?,?)';
+        let placeholders = '(?,?,?)';
+        sql = 'INSERT INTO domain (name, desc, email) VALUES ' + placeholders;
+        db.run(sql, domain, function (err) {
+            if (err) {
+                res.status(400);
+                // return console.error(err.message);
+                return console.error("Domain not available.")
+            }
+            console.log('Rows inserted')
+        });
         closeDB();
     });
     console.log("_____________________");
     res.send(json);
+});
+
+app.get('/reclaim', (req,res) => {
+    res.sendFile(__dirname + "/" + "reclaim.html");
+})
+
+app.get('/reclaimToken', (req, res) => {
+    reclamation_token = generateToken();
+    openDB();
+    let sql = "INSERT INTO domain (name, reclamation_token) VALUES (?,?)";
+    db.run(sql, [req.query.name, reclamation_token], (err) => {
+        if (err) {
+            return console.error(err.message)
+        }
+    })
+    //email not sent yet
 });
 
 function openDB() {
@@ -74,6 +91,14 @@ function closeDB() {
         }
     });
     // console.log('Close the database connection.');
+}
+
+function generateToken() {
+    let token = "";
+    for (let i = 0; i < 6; i++) {
+        token = token + Math.random().toString(36).substr(2, 6);
+    }
+    return token
 }
 
 const server = app.listen(8081, function () {
