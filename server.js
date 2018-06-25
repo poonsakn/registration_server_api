@@ -71,6 +71,22 @@ app.get('/subscribe', function (req, res) {
     });
 });
 
+app.get('/reclaim', (req,res) => {
+    res.sendFile(__dirname + "/" + "reclaim.html");
+})
+
+app.get('/reclaimToken', (req, res) => {
+    reclamation_token = generateToken();
+    openDB();
+    let sql = "INSERT INTO domain (name, reclamation_token) VALUES (?,?)";
+    db.run(sql, [req.query.name, reclamation_token], (err) => {
+        if (err) {
+            return console.error(err.message)
+        }
+    })
+    //email not sent yet
+});
+
 function openDB() {
     db = new sqlite3.Database('./db/domain.db', sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
@@ -87,6 +103,14 @@ function closeDB() {
         }
     });
     // console.log('Close the database connection.');
+}
+
+function generateToken() {
+    let token = "";
+    for (let i = 0; i < 6; i++) {
+        token = token + Math.random().toString(36).substr(2, 6);
+    }
+    return token
 }
 
 const server = app.listen(8081, function () {
