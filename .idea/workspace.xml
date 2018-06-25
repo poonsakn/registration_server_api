@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05232e06-bea9-45f1-b641-121a6b8286f2" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/domainDB.db" beforeDir="false" afterPath="$PROJECT_DIR$/db/domainDB.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/domain.db" beforeDir="false" afterPath="$PROJECT_DIR$/db/domain.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server.js" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -71,10 +70,14 @@
       <file leaf-file-name="server.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="332">
-              <caret line="40" column="16" lean-forward="true" selection-start-line="40" selection-start-column="16" selection-end-line="40" selection-end-column="16" />
+            <state relative-caret-position="-72">
+              <caret line="29" column="16" lean-forward="true" selection-start-line="29" selection-start-column="16" selection-end-line="29" selection-end-column="16" />
               <folding>
-                <element signature="n#!!block;n#generateToken#0" />
+                <element signature="e#323#376#0" />
+                <element signature="n#!!block;n#openDB#0" />
+                <element signature="n#!!block;n#closeDB#0" />
+                <element signature="e#2504#2533#0" />
+                <element signature="e#2477#2632#0" />
               </folding>
             </state>
           </provider>
@@ -115,6 +118,7 @@
       <find>post</find>
       <find>close</find>
       <find>no</find>
+      <find>log</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -147,8 +151,8 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1050" />
-    <option name="width" value="877" />
+    <option name="x" value="953" />
+    <option name="width" value="974" />
     <option name="height" value="1055" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -223,25 +227,24 @@
       <workItem from="1529566442760" duration="2379000" />
       <workItem from="1529568860216" duration="5561000" />
       <workItem from="1529630021215" duration="22797000" />
-      <workItem from="1529889525667" duration="2270000" />
+      <workItem from="1529889525667" duration="13442000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="45442000" />
+    <option name="totallyTimeSpent" value="56614000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1050" y="0" width="877" height="1055" extended-state="0" />
-    <editor active="true" />
+    <frame x="953" y="0" width="974" height="1055" extended-state="0" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.27990708" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17118998" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.2716702" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.32241014" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -265,7 +268,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="3" />
+      <option name="time" value="6" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
@@ -372,7 +375,11 @@
         <state relative-caret-position="497">
           <caret line="52" column="43" selection-start-line="52" selection-start-column="43" selection-end-line="52" selection-end-column="43" />
           <folding>
-            <element signature="n#!!block;n#generateToken#0" />
+            <element signature="e#323#376#0" />
+            <element signature="n#!!block;n#openDB#0" />
+            <element signature="n#!!block;n#closeDB#0" />
+            <element signature="e#2504#2533#0" />
+            <element signature="e#2477#2632#0" />
           </folding>
         </state>
       </provider>
@@ -589,10 +596,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/server.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="332">
-          <caret line="40" column="16" lean-forward="true" selection-start-line="40" selection-start-column="16" selection-end-line="40" selection-end-column="16" />
+        <state relative-caret-position="-72">
+          <caret line="29" column="16" lean-forward="true" selection-start-line="29" selection-start-column="16" selection-end-line="29" selection-end-column="16" />
           <folding>
-            <element signature="n#!!block;n#generateToken#0" />
+            <element signature="e#323#376#0" />
+            <element signature="n#!!block;n#openDB#0" />
+            <element signature="n#!!block;n#closeDB#0" />
+            <element signature="e#2504#2533#0" />
+            <element signature="e#2477#2632#0" />
           </folding>
         </state>
       </provider>
