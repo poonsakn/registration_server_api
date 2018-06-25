@@ -4,6 +4,10 @@ const sqlite3 = require('sqlite3').verbose();
 let db;
 const app = express();
 
+const generateToken = function () {
+    return '123'
+};
+
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
@@ -11,51 +15,60 @@ app.get('/', function (req, res) {
 });
 
 app.get('/subscribe', function (req, res) {
-    let token = generateToken();
-    let subscribe = {};
-    openDB();
-    subscribe['name'] = req.query.name;
-    subscribe['reclamationToken'] = req.query.reclamationToken;
+    console.log("_____________________");
+    let query = new Promise((resolve, reject) => {
+        let token = generateToken();
+        let subscribe = {};
+        openDB();
+        subscribe['name'] = req.query.name;
+        subscribe['reclamationToken'] = req.query.reclamationToken;
+    
+        let json = JSON.parse(JSON.stringify(subscribe));
+    
+        subscribe['desc'] = req.query.desc;
+        subscribe['email'] = req.query.email;
 
-    let json = JSON.parse(JSON.stringify(subscribe));
-
-    subscribe['desc'] = req.query.desc;
-    subscribe['email'] = req.query.email;
-
-    let sql = 'SELECT name name, reclamation_token token FROM domain ' +
+        let sql = 'SELECT name name, reclamation_token token FROM domain ' +
         'WHERE name = ? and reclamation_token  = ?';
-    db.serialize(() => {
-        db.get(sql, [subscribe['name'], subscribe['reclamationToken']], (err, row) => {
-            if (err) {
-                return console.error(err.message);
-            }
-            if (row) {
-                console.log(row.name);
-            } else {
-                console.log("This domain is available.");
-            }
-        });
-
-            let domain = [
-                subscribe['name'],
-                subscribe['desc'],
-                subscribe['email'],
-                subscribe['reclamationToken']
-            ];
-            let placeholders = '(?,?,?,?)';
-            sql = 'INSERT INTO domain VALUES ' + placeholders;
-            db.run(sql, domain, function (err) {
+        db.serialize(() => {
+            db.get(sql, [subscribe['name'], subscribe['reclamationToken']], (err, row) => {
                 if (err) {
-                    res.status(400);
-                    // return console.error(err.message);
-                    return console.error("Domain not available.")
+                    return console.error(err.message);
+                    reject(err)
                 }
-                console.log('Rows inserted')
-            });
+                if (row) {
+                    console.log(row.name);
+                    resolve()
+                } else {
+                    console.log("This domain is available.");
+                    let domain = [
+                        subscribe['name'],
+                        subscribe['desc'],
+                        subscribe['email'],
+                        subscribe['reclamationToken']
+                    ];
+                    let placeholders = '(?,?,?,?)';
+                    sql = 'INSERT INTO domain VALUES ' + placeholders;
+                    db.run(sql, domain, function (err) {
+                        if (err) {
+                            console.error("Domain not available.")
+                            reject(err)
+                        } else {
+                            console.log('Rows inserted')
+                            resolve()
+                        }
+                    });
+                }
+            }); 
+        });
+    });
+    query.then(() => {
+        res.send(json);
+        closeDB();
+    }).catch((error) => {
+        res.status(400).send(error);
         closeDB();
     });
-    console.log("_____________________");
-    res.send(json);
 });
 
 function openDB() {
