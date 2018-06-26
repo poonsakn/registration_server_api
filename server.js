@@ -83,13 +83,16 @@ app.get('/reclaim', (req, res) => {
 app.get('/reclaimToken', (req, res) => {
     reclamation_token = generateToken();
     openDB();
-    let sql = "INSERT INTO domain (name, reclamation_token) VALUES (?,?)";
-    db.run(sql, [req.query.name, reclamation_token], (err) => {
+    let sql = "UPDATE domain SET reclamation_token = ? WHERE name = ?";
+    db.run(sql, [reclamation_token, req.query.name], (err) => {
         if (err) {
             return console.error(err.message)
         }
-    })
-    //email not sent yet
+        console.log(reclamation_token)
+    });
+    res.redirect('/');
+    closeDB()
+    //email with reclaimation token is not sent yet
 });
 
 function openDB() {
