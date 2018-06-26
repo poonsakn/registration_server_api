@@ -4,10 +4,6 @@ const sqlite3 = require('sqlite3').verbose();
 let db;
 const app = express();
 
-const generateToken = function () {
-    return '123'
-};
-
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
@@ -16,53 +12,62 @@ app.get('/', function (req, res) {
 
 app.get('/subscribe', function (req, res) {
     console.log("_____________________");
+
+    let json;
     let query = new Promise((resolve, reject) => {
         let token = generateToken();
         let subscribe = {};
         openDB();
         subscribe['name'] = req.query.name;
         subscribe['reclamationToken'] = req.query.reclamationToken;
-    
-        let json = JSON.parse(JSON.stringify(subscribe));
-    
+        json = JSON.parse(JSON.stringify(subscribe));
+
         subscribe['desc'] = req.query.desc;
         subscribe['email'] = req.query.email;
-
-        let sql = 'SELECT name name, reclamation_token token FROM domain ' +
-        'WHERE name = ? and reclamation_token  = ?';
         db.serialize(() => {
+            let sql = 'SELECT name, reclamation_token FROM domain ' +
+                'WHERE name = ? and reclamation_token  = ?';
             db.get(sql, [subscribe['name'], subscribe['reclamationToken']], (err, row) => {
                 if (err) {
-                    return console.error(err.message);
                     reject(err)
+                    // return console.error(err.message);
                 }
-                if (row) {
-                    console.log(row.name);
-                    resolve()
-                } else {
-                    console.log("This domain is available.");
-                    let domain = [
-                        subscribe['name'],
-                        subscribe['desc'],
-                        subscribe['email'],
-                        subscribe['reclamationToken']
-                    ];
-                    let placeholders = '(?,?,?,?)';
-                    sql = 'INSERT INTO domain VALUES ' + placeholders;
-                    db.run(sql, domain, function (err) {
-                        if (err) {
-                            console.error("Domain not available.")
-                            reject(err)
-                        } else {
-                            console.log('Rows inserted')
+                else {
+                    if (row) {
+                        console.log(row.name)
+                        if (row.reclamation_token != null) {
+                            console.log(row.reclamation_token)
+                            //to receive API token and run Let's Encrypt
                             resolve()
                         }
-                    });
+                        resolve()
+                    } else {
+
+                        console.log("This domain is available.");
+                        let domain = [
+                            subscribe['name'],
+                            subscribe['desc'],
+                            subscribe['email'],
+                            subscribe['reclamationToken']
+                        ];
+                        let placeholders = '(?,?,?,?)';
+                        sql = 'INSERT INTO domain VALUES ' + placeholders;
+                        db.run(sql, domain, function (err) {
+                            if (err) {
+                                console.error("Domain not available.")
+                                reject(err)
+                            } else {
+                                console.log('Rows inserted')
+                                resolve()
+                            }
+                        });
+                    }
                 }
-            }); 
+            });
         });
     });
     query.then(() => {
+        // console.log('val' + valll[1] );
         res.send(json);
         closeDB();
     }).catch((error) => {
@@ -71,9 +76,9 @@ app.get('/subscribe', function (req, res) {
     });
 });
 
-app.get('/reclaim', (req,res) => {
+app.get('/reclaim', (req, res) => {
     res.sendFile(__dirname + "/" + "reclaim.html");
-})
+});
 
 app.get('/reclaimToken', (req, res) => {
     reclamation_token = generateToken();
