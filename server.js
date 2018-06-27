@@ -102,7 +102,7 @@ app.get('/ping', (req, res) => {
 
 app.get('/setemail', (req, res) => {
     openDB();
-    let query = new Promise((resolve,  reject) => {
+    let query = new Promise((resolve, reject) => {
         let sql = "UPDATE domain SET email = ? WHERE token = ?";
         db.run(sql, [req.query.email, req.query.token], (err) => {
             if (err) {
@@ -126,7 +126,7 @@ app.get('/setemail', (req, res) => {
 });
 app.get('/unsubscribe', (req, res) => {
     openDB();
-    let query = new Promise((resolve,  reject) => {
+    let query = new Promise((resolve, reject) => {
         let sql = "DELETE FROM domain WHERE token = ? and reclamation_token = ?";
         db.run(sql, [req.query.token, req.query.reclamationToken], (err) => {
             if (err) {
@@ -147,6 +147,40 @@ app.get('/unsubscribe', (req, res) => {
         }
     );
     closeDB();
+});
+
+app.get('/info', (req, res) => {
+    let info = {'name': 'j'};
+    openDB();
+    let query = new Promise((resolve, reject) => {
+        let sql = "SELECT * FROM domain WHERE token = ?";
+        db.get(sql, [req.query.token], (err, row) => {
+            if (err) {
+                console.log("err");
+                reject(err);
+            }
+            else {
+                if (row) {
+                    let infoDB = {
+                        'name': row.name,
+                        'desc': row.desc,
+                        'email': row.email,
+                        'reclamation_token': row.reclamation_token
+                    };
+                    resolve(infoDB);
+                }
+            }
+        })
+    });
+    query.then((infoDB) => {
+        // console.log(row[0]);
+        res.send(JSON.parse(JSON.stringify(infoDB)));
+        closeDB();
+
+    }).catch((err) => {
+        res.status(501).send(err);
+        closeDB();
+    });
 });
 
 function openDB() {
