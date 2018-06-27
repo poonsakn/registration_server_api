@@ -7,10 +7,13 @@
 
 <form action="http://127.0.0.1:8081/subscribe" method="GET">
     Name: <input type="text" name="name"> <br>
-    Description: <input type="text" name="desc" required> <br>
+    <!--Name: <input type="text" name="name" required> <br>-->
+    Description: <input type="text" name="desc"> <br>
     Email: <input type="text" name="email"> <br>
     Reclamation Token: <input type="text" name="reclamationToken"> <br>
+    Token: <input type="text" name="token"> <br>
     <input type="submit" value="Submit">
+    <input type="submit" formaction="http://127.0.0.1:8081/setemail" value="Set email">
 </form>
 
 </body>

@@ -34,15 +34,14 @@ app.get('/subscribe', function (req, res) {
                 }
                 else {
                     if (row) {
-                        console.log(row.name)
+                        console.log(row.name);
                         if (row.reclamation_token != null) {
-                            console.log(row.reclamation_token)
+                            console.log(row.reclamation_token);
                             //to receive API token and run Let's Encrypt
                             resolve()
                         }
                         resolve()
                     } else {
-
                         console.log("This domain is available.");
                         let domain = [
                             subscribe['name'],
@@ -51,13 +50,14 @@ app.get('/subscribe', function (req, res) {
                             subscribe['reclamationToken']
                         ];
                         let placeholders = '(?,?,?,?)';
-                        sql = 'INSERT INTO domain VALUES ' + placeholders;
+                        sql = 'INSERT INTO domain (name, desc, email, reclamation_token) VALUES ' + placeholders;
                         db.run(sql, domain, function (err) {
                             if (err) {
-                                console.error("Domain not available.")
+                                // console.error("Domain not available.");
+                                console.error(err.message)
                                 reject(err)
                             } else {
-                                console.log('Rows inserted')
+                                console.log('Rows inserted');
                                 resolve()
                             }
                         });
@@ -93,6 +93,36 @@ app.get('/reclaimToken', (req, res) => {
     res.redirect('/');
     closeDB()
     //email with reclaimation token is not sent yet
+});
+
+app.get('/ping', (req, res) => {
+    res.send();
+    res.redirect('/')
+});
+
+app.get('/setemail', (req, res) => {
+    openDB();
+    let query = new Promise((resolve,  reject) => {
+        let sql = "UPDATE domain SET email = ? WHERE token = ?";
+        db.run(sql, [req.query.email, req.query.token], (err) => {
+            if (err) {
+                console.error(err.message);
+                reject(err)
+            } else {
+                resolve()
+            }
+        })
+    });
+    query.then(() => {
+            //need to do something with email verification
+            res.redirect('/');
+            console.log("email sent!")
+        }
+    ).catch((error) => {
+            res.status(400).send(error);
+        }
+    );
+    closeDB();
 });
 
 function openDB() {
