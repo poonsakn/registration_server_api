@@ -124,6 +124,30 @@ app.get('/setemail', (req, res) => {
     );
     closeDB();
 });
+app.get('/unsubscribe', (req, res) => {
+    openDB();
+    let query = new Promise((resolve,  reject) => {
+        let sql = "DELETE FROM domain WHERE token = ? and reclamation_token = ?";
+        db.run(sql, [req.query.token, req.query.reclamationToken], (err) => {
+            if (err) {
+                console.error(err.message);
+                reject(err)
+            } else {
+                resolve()
+            }
+        })
+    });
+    query.then(() => {
+            //need to do something with email verification
+            res.redirect('/');
+            console.log("Unsubscribe successfully!")
+        }
+    ).catch((error) => {
+            res.status(400).send(error);
+        }
+    );
+    closeDB();
+});
 
 function openDB() {
     db = new sqlite3.Database('./db/domain.db', sqlite3.OPEN_READWRITE, (err) => {
