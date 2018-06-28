@@ -1,8 +1,17 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const nodemailer = require('nodemailer');
+const uuidv4 = require('uuid/v4');
 
-let db;
 const app = express();
+let db;
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'psk.reg.api@gmail.com',
+        pass: 'n7l0cxlqhb5q34qptlge7oiwqyv59n3jt5ka'
+    }
+});
 
 app.use(express.static('public'));
 
@@ -11,8 +20,6 @@ app.get('/', function (req, res) {
 });
 
 app.get('/subscribe', function (req, res) {
-    console.log("_____________________");
-
     let json;
     let query = new Promise((resolve, reject) => {
         let token = generateToken();
@@ -101,6 +108,47 @@ app.get('/ping', (req, res) => {
 });
 
 app.get('/setemail', (req, res) => {
+    let query = new Promise((resolve, reject) => {
+        openDB();
+
+        let mailOptions = {
+            from: 'psk.reg.api@gmail.com',
+            to: 'psk.reg.api@gmail.com',
+            subject: 'Sending Email using Node.js',
+            text: 'That was almost easy!'
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+                reject(error);
+            } else {
+                sql = 'UPDATE domain SET new_email = ? WHERE token = ?';
+                db.run(sql, [req.query.email, req.query.token], (err) => {
+                    if (err) {
+                        console.error(err.message)
+                        reject(err);
+                    } else {
+                        console.log('Email sent: ' + info.response);
+                        resolve()
+                    }
+                });
+            }
+        });
+    });
+    query.then(() => {
+            //need to do something with email verification
+            res.redirect('/');
+            closeDB();
+        }
+    ).catch((error) => {
+            res.status(400).send(error);
+            closeDB();
+        }
+    );
+});
+
+app.get('/verifyemail', (req, res) => {
     openDB();
     let query = new Promise((resolve, reject) => {
         let sql = "UPDATE domain SET email = ? WHERE token = ?";
@@ -124,6 +172,13 @@ app.get('/setemail', (req, res) => {
     );
     closeDB();
 });
+
+app.get('/verifyemail', (req, res) => {
+        openDB();
+        closeDB();
+    }
+);
+
 app.get('/unsubscribe', (req, res) => {
     openDB();
     let query = new Promise((resolve, reject) => {
