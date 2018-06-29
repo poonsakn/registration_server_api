@@ -5,6 +5,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "nodemailer": "^4.6.7",
+    "query-string": "^6.1.0",
     "sqlite3": "^4.0.0",
     "uuid": "^3.3.0"
   }
