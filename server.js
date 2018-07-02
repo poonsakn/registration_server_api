@@ -189,6 +189,30 @@ app.get('/verifyemail', (req, res) => {
     );
 });
 
+app.get('/revokeemail', (req,res) => {
+    openDB();
+    let query = new Promise((resolve, reject) => {
+        let sql = "UPDATE domain SET new_email = NULL, uuid = NULL WHERE token = ?";
+        db.run(sql, [req.query.token], (err) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve();
+            }
+        })
+    });
+    query.then(() => {
+            //need to do something with email verification
+            res.redirect('/');
+            closeDB();
+        }
+    ).catch((error) => {
+            res.status(400).send(error);
+            closeDB();
+        }
+    );
+});
+
 app.get('/unsubscribe', (req, res) => {
     openDB();
     let query = new Promise((resolve, reject) => {
