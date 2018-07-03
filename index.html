@@ -5,7 +5,7 @@
 </head>
 <body>
 
-<form action="http://127.0.0.1:8081/subscribe" method="GET">
+<form action="/subscribe" method="GET">
     Name: <input type="text" name="name"> required for Subscribe<br>
     <!--Name: <input type="text" name="name" required> <br>-->
     Description: <input type="text" name="desc"> <br>
@@ -13,10 +13,11 @@
     Reclamation Token: <input type="text" name="reclamationToken"> <br>
     Token: <input type="text" name="token"> <br>
     <input type="submit" value="Subscribe">
-    <input type="submit" formaction="http://127.0.0.1:8081/setemail" value="Set email">
-    <input type="submit" formaction="http://127.0.0.1:8081/revokeemail" value="Revoke email">
-    <input type="submit" formaction="http://127.0.0.1:8081/unsubscribe" value="Unsubscribe"> <br>
-    <input type="submit" formaction="http://127.0.0.1:8081/info" value="Show info">
+    <input type="submit" formaction="/setemail" value="Set email">
+    <input type="submit" formaction="/revokeemail" value="Revoke email"><br>
+    <input type="submit" formaction="/unsubscribe" value="Unsubscribe">
+    <input type="submit" formaction="/info" value="Show info">
+    <input type="submit" formaction="/reclaim" value="Reclaim">
 
 </form>
 

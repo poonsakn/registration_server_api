@@ -5,7 +5,8 @@ const uuidv4 = require('uuid/v4');
 const querystring = require('querystring');
 
 const app = express();
-let site = 'http://localhost:8081';
+let site = 'http://localhost:80';
+// let site = 'http://localhost:8081';
 let db;
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -297,7 +298,8 @@ function generateToken() {
     return token
 }
 
-const server = app.listen(8081, function () {
+const server = app.listen(80, function () {
+// const server = app.listen(8081, function () {
     const host = server.address().address;
     const port = server.address().port;
     console.log("Example app listening at http://%s:%s", host, port)
