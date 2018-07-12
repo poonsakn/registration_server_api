@@ -3,10 +3,14 @@ const sqlite3 = require('sqlite3').verbose();
 const nodemailer = require('nodemailer');
 const uuidv4 = require('uuid/v4');
 const querystring = require('querystring');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const request = require('request');
+require('dotenv').config();
 
 const app = express();
-let site = 'http://localhost:80';
-// let site = 'http://localhost:8081';
+let site = 'http://i.wot.box-box.space';
 let db;
 let transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -64,7 +68,7 @@ app.get('/subscribe', function (req, res) {
                         db.run(sql, domain, function (err) {
                             if (err) {
                                 // console.error("Domain not available.");
-                                console.error(err.message)
+                                console.error(err.message);
                                 reject(err)
                             } else {
                                 console.log('Rows inserted');
@@ -190,7 +194,7 @@ app.get('/verifyemail', (req, res) => {
     );
 });
 
-app.get('/revokeemail', (req,res) => {
+app.get('/revokeemail', (req, res) => {
     openDB();
     let query = new Promise((resolve, reject) => {
         let sql = "UPDATE domain SET new_email = NULL, uuid = NULL WHERE token = ?";
@@ -239,6 +243,32 @@ app.get('/unsubscribe', (req, res) => {
     closeDB();
 });
 
+app.get('/dnsconfig', (req, res) => {
+    let request = require('request');
+
+    let headers = {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': ("sso-key " + process.env.SSO_KEY),
+    };
+
+    let dataString = '[ { "data": "site=addmao7.wot.box-box.space", "name": "@", "ttl": 600, "type": "TXT" }]';
+
+    let options = {
+        url: 'https://api.godaddy.com/v1/domains/box-box.space/records',
+        method: 'PATCH',
+        headers: headers,
+        body: dataString
+    };
+
+    function callback(error, response, body) {
+        if (!error && response.statusCode === 200) {
+            console.log(body);
+        }
+    }
+    request(options, callback);
+});
+
 app.get('/info', (req, res) => {
     openDB();
     let query = new Promise((resolve, reject) => {
@@ -272,6 +302,8 @@ app.get('/info', (req, res) => {
     });
 });
 
+app.get('/health-check', (req, res) => res.sendStatus(200));
+
 function openDB() {
     db = new sqlite3.Database('./db/domain.db', sqlite3.OPEN_READWRITE, (err) => {
         if (err) {
@@ -298,9 +330,30 @@ function generateToken() {
     return token
 }
 
-const server = app.listen(80, function () {
-// const server = app.listen(8081, function () {
-    const host = server.address().address;
-    const port = server.address().port;
-    console.log("Example app listening at http://%s:%s", host, port)
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/i.wot.box-box.space/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/i.wot.box-box.space/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/i.wot.box-box.space/chain.pem', 'utf8');
+
+const credentials = {
+    key: privateKey,
+    cert: certificate,
+    ca: ca
+};
+
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+// const server = app.listen(80, function () {
+//     const host = server.address().address;
+//     const port = server.address().port;
+//     console.log("App listening at http://%s:%s", host, port)
+// });
+
+
+httpServer.listen(80, () => {
+    console.log('HTTP Server running on port 80');
+});
+
+httpsServer.listen(443, () => {
+    console.log('HTTPS Server running on port 443');
 });
