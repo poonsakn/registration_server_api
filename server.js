@@ -27,21 +27,18 @@ app.get('/', function (req, res) {
 });
 
 app.get('/subscribe', function (req, res) {
-    let json;
     let query = new Promise((resolve, reject) => {
         let token = generateToken();
         let subscribe = {};
         openDB();
         subscribe['name'] = req.query.name;
         subscribe['reclamationToken'] = req.query.reclamationToken;
-        json = JSON.parse(JSON.stringify(subscribe));
-
         subscribe['desc'] = req.query.desc;
         subscribe['email'] = req.query.email;
         db.serialize(() => {
-            let sql = 'SELECT name, reclamation_token FROM domain ' +
-                'WHERE name = ? and reclamation_token  = ?';
-            db.get(sql, [subscribe['name'], subscribe['reclamationToken']], (err, row) => {
+            let sql = 'SELECT name, token FROM domain ' +
+                'WHERE name = ?';
+            db.get(sql, [subscribe['name']], (err, row) => {
                 if (err) {
                     reject(err)
                     // return console.error(err.message);
@@ -49,22 +46,27 @@ app.get('/subscribe', function (req, res) {
                 else {
                     if (row) {
                         console.log(row.name);
-                        if (row.reclamation_token != null) {
-                            console.log(row.reclamation_token);
+                        if (row.token != null) {
+                            console.log(row.token);
                             //to receive API token and run Let's Encrypt
-                            resolve()
+                            let json = {
+                                "name": row.name,
+                                "token": row.token
+                            };
+                            resolve(json)
                         }
-                        resolve()
                     } else {
                         console.log("This domain is available.");
+                        subscribe['token'] = generateToken();
                         let domain = [
                             subscribe['name'],
                             subscribe['desc'],
                             subscribe['email'],
-                            subscribe['reclamationToken']
+                            subscribe['reclamationToken'],
+                            subscribe['token']
                         ];
-                        let placeholders = '(?,?,?,?)';
-                        sql = 'INSERT INTO domain (name, desc, email, reclamation_token) VALUES ' + placeholders;
+                        let placeholders = '(?,?,?,?,?)';
+                        sql = 'INSERT INTO domain (name, desc, email, reclamation_token, token) VALUES ' + placeholders;
                         db.run(sql, domain, function (err) {
                             if (err) {
                                 // console.error("Domain not available.");
@@ -72,7 +74,11 @@ app.get('/subscribe', function (req, res) {
                                 reject(err)
                             } else {
                                 console.log('Rows inserted');
-                                resolve()
+                                let json = {
+                                    "name": subscribe['name'],
+                                    "token": subscribe['token']
+                                };
+                                resolve(json)
                             }
                         });
                     }
@@ -80,9 +86,14 @@ app.get('/subscribe', function (req, res) {
             });
         });
     });
-    query.then(() => {
+    query.then((json) => {
         // console.log('val' + valll[1] );
-        res.send(json);
+
+        if (json != null) {
+            res.send(json);
+        } else {
+            res.send();
+        }
         closeDB();
     }).catch((error) => {
         res.status(400).send(error);
@@ -244,29 +255,69 @@ app.get('/unsubscribe', (req, res) => {
 });
 
 app.get('/dnsconfig', (req, res) => {
-    let request = require('request');
-
-    let headers = {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': ("sso-key " + process.env.SSO_KEY),
-    };
-
-    let dataString = '[ { "data": "site=addmao7.wot.box-box.space", "name": "@", "ttl": 600, "type": "TXT" }]';
-
-    let options = {
-        url: 'https://api.godaddy.com/v1/domains/box-box.space/records',
-        method: 'PATCH',
-        headers: headers,
-        body: dataString
-    };
-
-    function callback(error, response, body) {
-        if (!error && response.statusCode === 200) {
-            console.log(body);
+    openDB();
+    let query = new Promise((resolve, reject) => {
+        let sql = "SELECT name FROM domain WHERE token = ?";
+        db.get(sql, [req.query.token], (err, row) => {
+            if (err) {
+                console.log("err");
+                reject(err);
+            }
+            else {
+                if (row) {
+                    data = {
+                        'name': row.name,
+                        'challenge': req.query.challenge
+                    };
+                    console.log(data);
+                    resolve(data);
+                }
+            }
+        })
+    });
+    query.then((data) => {
+        console.log(data['name'])
+            patch(data);
+            res.send();
+            closeDB()
         }
+    ).catch((err) => {
+            res.status(501).send(err);
+            closeDB();
+        }
+    );
+
+    function patch(data) {
+        let request = require('request');
+        data['name'] = "_acme-challenge." + data['name'] + ".i.wot.box-box.space";
+        console.log(data)
+        let headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': ("sso-key " + process.env.SSO_KEY),
+        };
+
+        data = {
+            "data": data['challenge'], "name": data['name'], "ttl": 600, "type": "TXT"
+            // "data": name, "name": "@", "ttl": 600, "type": "TXT"
+        };
+        let dataString = '[' + JSON.stringify(data) + ']';
+        // let dataString = '[ { "data": "site=addmao7.wot.box-box.space", "name": "@", "ttl": 600, "type": "TXT" }]';
+
+        let options = {
+            url: 'https://api.godaddy.com/v1/domains/box-box.space/records',
+            method: 'PATCH',
+            headers: headers,
+            body: dataString
+        };
+
+        function callback(error, response, body) {
+            if (!error && response.statusCode === 200) {
+                console.log(body);
+            }
+        }
+        request(options, callback);
     }
-    request(options, callback);
 });
 
 app.get('/info', (req, res) => {
